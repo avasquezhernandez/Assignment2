@@ -134,14 +134,14 @@ public class Part_3 {
 
     /** Recursively delete ALL empty files (length == 0) under 'root'. */
     public static void delEmptyFilesRecursive(Path root) throws IOException {
-		FileSystem fs = HDFSUtils.getFileSystem();
-    if (fs.exists(root)==0) 
+    FileSystem fs = HDFSUtils.getFileSystem();
+    if (!fs.exists(root)) 
 	return;
-    for (FileStatus st : fs.listStatus(root)) {
-        if (st.isDirectory()) {
-            delEmptyFilesRecursive(st.getPath());
-        } else if (st.getLen() == 0) {
-            fs.delete(st.getPath(), false);
+    for (FileStatus a : fs.listStatus(root)) {
+        if (a.isDirectory()) {
+            delEmptyFilesRecursive(a.getPath());
+        } else if (a.getLen() == 0) {
+            fs.delete(a.getPath(), false);
         }
     }
     }
@@ -152,13 +152,13 @@ public class Part_3 {
      */
     public static void delBySuffixRecursive(Path root, String suffix) throws IOException {
 	 FileSystem fs = HDFSUtils.getFileSystem();
-    if (fs.exists(root)==0)
+    if (!fs.exists(root))
 	 return;
-    for (FileStatus st : fs.listStatus(root)) {
-        if (st.isDirectory()) {
-            delBySuffixRecursive(st.getPath(), suffix);
-        } else if (st.getPath().getName().endsWith(suffix)) {
-            fs.delete(st.getPath(), false);
+    for (FileStatus a : fs.listStatus(root)) {
+        if (a.isDirectory()) {
+            delBySuffixRecursive(a.getPath(), suffix);
+        } else if (a.getPath().getName().endsWith(suffix)) {
+            fs.delete(a.getPath(), false);
         }
     }
     }
