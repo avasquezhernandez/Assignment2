@@ -1,4 +1,4 @@
-n():
+def main():
     acc = 0
     with open("guest_program.txt", "r") as f:
 
@@ -18,7 +18,7 @@ n():
             elif "scan_disk" in adj_line:
                 print("[VMM] Trapped privileged instruction 'scan_disk', emulating...")
 
-f __name__ == "__main__":
+if __name__ == "__main__":
     main()
 
 
