@@ -53,7 +53,22 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
-		}
+				if (words.length > 1){
+				String previous_word = words[0];
+				for (int i = 1; i < words.length; i++) {
+					String w = words[i];
+					
+					if (w.length()==0){
+						continue;
+					}
+					BIGRAM.set(previous_word,"");
+					context.write(BIGRAM,ONE);
+					BIGRAM.set(previous_word, w);
+					context.write(BIGRAM,ONE);
+					previous_word = w;
+			          }
+				}						
+		}			
 	}
 
 	/*
@@ -64,13 +79,29 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 
 		// Reuse objects.
 		private final static FloatWritable VALUE = new FloatWritable();
+		private static float marginal = 0;
+
 
 		@Override
-		public void reduce(PairOfStrings key, Iterable<IntWritable> values,
-				Context context) throws IOException, InterruptedException {
+		public void reduce(PairOfStrings key, Iterable<IntWritable> values,Context context) throws IOException, InterruptedException {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			int sum = 0;
+			for(IntWritable val: values){
+				sum+=val.get();			
+			}
+			if(key.getRightElement().equals("")){
+				marginal=(float)sum;
+				VALUE.set(marginal);
+				context.write(key,VALUE);	
+			}
+			else {
+				if (marginal!=0){
+					VALUE.set((float)sum/marginal);
+					context.write(key,VALUE);
+				}	
+			}
 		}
 	}
 	
@@ -79,11 +110,17 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 		private static final IntWritable SUM = new IntWritable();
 
 		@Override
-		public void reduce(PairOfStrings key, Iterable<IntWritable> values,
+	public void reduce(PairOfStrings key, Iterable<IntWritable> values,
 				Context context) throws IOException, InterruptedException {
 			/*
-			 * TODO: Your implementation goes here.
-			 */
+			 * TODO: Your implementation goes here.			 */
+			int sum = 0;
+		        for (IntWritable val: values){
+				sum+=val.get();
+			}
+			 SUM.set(sum);
+                         context.write(key,SUM);
+				
 		}
 	}
 

@@ -50,10 +50,20 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 				throws IOException, InterruptedException {
 			String line = ((Text) value).toString();
 			String[] words = line.trim().split("\\s+");
-
-			/*
-			 * TODO: Your implementation goes here.
-			 */
+			
+			if (words.length > 1){
+				KEY.set( words[0]);
+				
+				for (int i = 1; i < words.length; i++) {
+					String w = words[i];if (w.length() == 0) {
+						continue;
+					}
+					STRIPE.increment(w);
+					context.write(KEY, STRIPE);
+					KEY.set(w);
+					STRIPE.clear();
+				}
+			}
 		}
 	}
 
@@ -75,15 +85,34 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here
 			 */
+			int sum = 0;
+			for(HashMapStringIntWritable stripe : stripes){
+                                SUM_STRIPES.plus(stripe);
+                        }
+			for (int add : SUM_STRIPES.values()){
+				sum+=add;
+			}
+		    BIGRAM.set(key.toString(), "");
+                    FREQ.set((float)sum);
+                    context.write(BIGRAM, FREQ);
+			   for (Map.Entry<String, Integer> mapElement : SUM_STRIPES.entrySet()) { 
+	            String second_w = (String) mapElement.getKey(); 
+	            int value = (int) mapElement.getValue();
+	            BIGRAM.set(key.toString(), second_w);
+	            FREQ.set(value/(float)sum);
+	            context.write(BIGRAM, FREQ);
+	        }
+	        
+	        SUM_STRIPES.clear();
+			
+
 		}
 	}
 
 	/*
 	 * TODO: Write your combiner to aggregate all stripes with the same key
 	 */
-	private static class MyCombiner
-			extends
-			Reducer<Text, HashMapStringIntWritable, Text, HashMapStringIntWritable> {
+	private static class MyCombiner extends Reducer<Text, HashMapStringIntWritable, Text, HashMapStringIntWritable> {
 		// Reuse objects.
 		private final static HashMapStringIntWritable SUM_STRIPES = new HashMapStringIntWritable();
 
@@ -94,6 +123,11 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here
 			 */
+			for(HashMapStringIntWritable stripe : stripes){
+				SUM_STRIPES.plus(stripe);	
+			}
+			context.write(key,SUM_STRIPES);
+			SUM_STRIPES.clear();
 		}
 	}
 
